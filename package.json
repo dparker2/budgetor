@@ -6,6 +6,9 @@
     "dev": "bun run --watch src/index.ts"
   },
   "dependencies": {
+    "@bogeychan/elysia-logger": "^0.0.19",
+    "@elysiajs/html": "^1.0.2",
+    "crypto": "^1.0.1",
     "elysia": "latest"
   },
   "devDependencies": {
