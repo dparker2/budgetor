@@ -110,6 +110,7 @@ const elysia = new Elysia()
                     if (log === null) {
                         return error(404);
                     }
+                    return ExpensesPage({ log, expenses: log.getExpenses() });
                 })
     )
     .listen(3000);

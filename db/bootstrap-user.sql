@@ -1,25 +1,15 @@
--- sqlite3
+-- sqlite3 per user database
 -- Assuming nothing exists yet!
 BEGIN TRANSACTION;
 
-CREATE TABLE users (
-    id INTEGER PRIMARY KEY AUTOINCREMENT,
-    email TEXT UNIQUE,
-    password TEXT
-);
-
 CREATE TABLE categories (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
-    owner INTEGER,
-    name TEXT,
-    FOREIGN KEY(owner) REFERENCES users(id)
+    name TEXT
 );
 
 CREATE TABLE expenselogs (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
-    owner INTEGER,
-    name TEXT,
-    FOREIGN KEY(owner) REFERENCES users(id)
+    name TEXT
 );
 
 CREATE TABLE expenses (
