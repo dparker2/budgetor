@@ -1,7 +1,14 @@
-import { Elysia, t } from "elysia";
+import { Elysia, error, t } from "elysia";
 import { html } from "@elysiajs/html";
 
-import { Index, AppIndex, Login, Toast } from "./views";
+import {
+    Index,
+    ExpenseLogListPage,
+    Login,
+    Toast,
+    ExpenseLogListItem,
+    ExpensesPage,
+} from "./views";
 import { User } from "./models";
 
 const elysia = new Elysia()
@@ -80,10 +87,29 @@ const elysia = new Elysia()
                     };
                 })
                 .get("/", ({ user }) => {
-                    return AppIndex({
-                        name: user.email.split("@")[0],
+                    return ExpenseLogListPage({
+                        username: user.email.split("@")[0],
                         logs: user.getLogs(),
                     });
+                })
+                .post(
+                    "/logs",
+                    ({ user, body }) => {
+                        return ExpenseLogListItem({
+                            log: user.addLog(body.name),
+                        });
+                    },
+                    {
+                        body: t.Object({
+                            name: t.String(),
+                        }),
+                    }
+                )
+                .get("/logs/:id", ({ user, params }) => {
+                    const log = user.getLog(Number(params.id));
+                    if (log === null) {
+                        return error(404);
+                    }
                 })
     )
     .listen(3000);

@@ -6,10 +6,12 @@ const db = new Database("db/db.sqlite");
 export class User {
     static sessions: Record<string, User> = {};
 
+    id: number;
     email: string;
 
-    constructor(email: string) {
+    constructor(id: number, email: string) {
         this.email = email;
+        this.id = id;
     }
 
     static register(email: string, password: string) {
@@ -22,45 +24,70 @@ export class User {
     }
 
     static authenticate(email: string, password: string) {
-        const storedPass = db
-            .query<{ password: string }, string>(
-                "SELECT password FROM users WHERE email = ?"
+        const record = db
+            .query<{ id: number; password: string }, string>(
+                "SELECT id, password FROM users WHERE email = ?"
             )
             .get(email);
-        if (!storedPass) {
+        if (!record) {
             return false;
         }
-        const [hash, salt] = storedPass.password.split(":");
+        const [hash, salt] = record.password.split(":");
         const hashVerify = scryptSync(password, salt, 64);
         if (!timingSafeEqual(Buffer.from(hash, "hex"), hashVerify)) {
             return false;
         }
 
         const sessionId = randomBytes(16).toString("hex");
-        this.sessions[sessionId] = new User(email);
+        this.sessions[sessionId] = new User(record.id, email);
         return sessionId;
     }
 
     getLogs(): ExpenseLog[] {
-        return [
-            new ExpenseLog("1/14/2022 - 1/28/2022", this),
-            new ExpenseLog("1/29/2022 - 2/12/2022", this),
-            new ExpenseLog("2/13/2022 - 2/27/2022", this),
-        ];
+        return db
+            .query<ExpenseLog, number>(
+                "SELECT * FROM expenselogs WHERE owner = ? ORDER BY id DESC"
+            )
+            .all(this.id);
+    }
+
+    getLog(id: number) {
+        return db
+            .query<ExpenseLog, [number, number]>(
+                "SELECT * FROM expenselogs WHERE owner = ? AND id = ?"
+            )
+            .get(this.id, id);
+    }
+
+    addLog(name: string): ExpenseLog {
+        return db
+            .query<ExpenseLog, [number, string]>(
+                "INSERT INTO expenselogs (owner, name) VALUES (?, ?) RETURNING id, name"
+            )
+            .get(this.id, name)!;
+    }
+
+    getExpenses(logId: number): Expense[] {
+        return db
+            .query<Expense, [number, number]>(
+                `SELECT expenses.id, expenses.date, expenses.amount, expenses.description, categories.name FROM expenses
+                JOIN expenselogs ON expenselogs.id=expenses.log
+                JOIN categories ON (expenses.category=categories.id AND categories.owner=expenselogs.owner)
+            WHERE expenselogs.owner=? AND expenselogs.id=?`
+            )
+            .all(this.id, logId);
     }
 }
 
-export class Expense {
-    constructor() {}
-}
-
-export class ExpenseLog {
+export interface ExpenseLog {
+    id: number;
     name: string;
-    owner: User;
-    expenses: Expense[] = [];
+}
 
-    constructor(name: string, owner: User) {
-        this.name = name;
-        this.owner = owner;
-    }
+export interface Expense {
+    id: number;
+    date: number;
+    amount: Date;
+    description: string;
+    category: string;
 }

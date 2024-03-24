@@ -8,6 +8,13 @@ CREATE TABLE users (
     password TEXT
 );
 
+CREATE TABLE categories (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    owner INTEGER,
+    name TEXT,
+    FOREIGN KEY(owner) REFERENCES users(id)
+);
+
 CREATE TABLE expenselogs (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     owner INTEGER,
@@ -18,9 +25,12 @@ CREATE TABLE expenselogs (
 CREATE TABLE expenses (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     log INTEGER,
+    date DATE,
     amount INTEGER,
     description TEXT,
-    FOREIGN KEY(log) REFERENCES expenselogs(id)
+    category INTEGER,
+    FOREIGN KEY(log) REFERENCES expenselogs(id),
+    FOREIGN KEY(category) REFERENCES categories(id)
 );
 
 COMMIT;

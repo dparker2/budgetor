@@ -44,6 +44,12 @@ function Page({ children }: PropsWithChildren) {
                             evt.detail.isError = false;
                         }
                     })
+                    function addLog() {
+                        var formItem = document.getElementById("new-log-form").firstChild.cloneNode(true);
+                        document.getElementById("expense-log-list").prepend(formItem);
+                        htmx.process(formItem);
+                        formItem.querySelector("input").focus();
+                    }
                 `}</script>
             </body>
         </html>
@@ -141,24 +147,37 @@ export function Index() {
     );
 }
 
+export function ExpenseLogListItem({ log }: { log: ExpenseLog }) {
+    return (
+        <li class="list-group-item">
+            <a href={`/app/logs/${log.id}`}>{log.name}</a>
+        </li>
+    );
+}
+
 export function ExpenseLogList({ logs }: { logs: ExpenseLog[] }) {
     return (
         <div class="col d-flex flex-column">
             <div class="row flex-grow-1">
                 <div class="col">
-                    <div
-                        class="btn-group d-none d-sm-block text-end"
-                        role="group"
-                    >
-                        <button type="button" class="btn btn-secondary">
-                            + Add
-                        </button>
+                    <div class="d-flex justify-content-between">
+                        <h3>Expenses</h3>
+                        <div
+                            class="btn-group d-none d-sm-block text-end"
+                            role="group"
+                        >
+                            <button
+                                type="button"
+                                class="btn btn-secondary mb-2"
+                                onclick="addLog()"
+                            >
+                                + Add
+                            </button>
+                        </div>
                     </div>
-                    <ul class="list-group">
+                    <ul id="expense-log-list" class="list-group">
                         {logs.map((log) => (
-                            <li class="list-group-item">
-                                <a href="#">{log.name}</a>
-                            </li>
+                            <ExpenseLogListItem log={log} />
                         ))}
                     </ul>
                 </div>
@@ -176,23 +195,76 @@ export function ExpenseLogList({ logs }: { logs: ExpenseLog[] }) {
                     </button>
                 </div>
             </div>
+            <div id="new-log-form" class="d-none">
+                <li class="list-group-item">
+                    <form
+                        hx-post="/app/logs"
+                        hx-target="closest li"
+                        hx-swap="outerHTML"
+                        class="d-flex"
+                    >
+                        <input
+                            type="text"
+                            class="form-control"
+                            name="name"
+                            placeholder="Name"
+                        />
+                        <button type="submit" class="btn btn-primary">
+                            Save
+                        </button>
+                    </form>
+                </li>
+            </div>
         </div>
     );
 }
 
-export function AppIndex({ name, logs }: { name: string; logs: ExpenseLog[] }) {
+function AppPage({
+    username,
+    children,
+}: PropsWithChildren<{ username: string }>) {
     return (
         <Page>
-            <div class="container-fluid min-vh-100 d-flex flex-column">
+            <div class="container min-vh-100 d-flex flex-column">
                 <div class="row">
                     <div class="col">
-                        <h1>Hello {name}</h1>
+                        <h1>Hello {username}</h1>
                     </div>
                 </div>
-                <div class="row flex-grow-1">
-                    <ExpenseLogList logs={logs} />
-                </div>
+                <div class="row flex-grow-1">{children}</div>
             </div>
         </Page>
+    );
+}
+
+export function ExpenseLogListPage({
+    username,
+    logs,
+}: {
+    username: string;
+    logs: ExpenseLog[];
+}) {
+    return (
+        <AppPage username={username}>
+            <ExpenseLogList logs={logs} />
+        </AppPage>
+    );
+}
+
+export function ExpensesPage({
+    log,
+    expenses,
+}: {
+    log: ExpenseLog;
+    expenses: Expense[];
+}) {
+    return (
+        <AppPage username={log.name}>
+            <ul class="list-group">
+                {expenses.map((expense) => (
+                    <li class="list-group-item">{expense.description}</li>
+                ))}
+            </ul>
+        </AppPage>
     );
 }
