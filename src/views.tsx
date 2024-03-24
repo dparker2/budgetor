@@ -155,13 +155,52 @@ export function ExpenseLogListItem({ log }: { log: ExpenseLog }) {
     );
 }
 
-export function ExpenseLogList({ logs }: { logs: ExpenseLog[] }) {
+function AppPage({
+    username,
+    children,
+}: PropsWithChildren<{
+    username: string;
+}>) {
     return (
-        <div class="col d-flex flex-column">
+        <Page>
+            <div class="container min-vh-100 d-flex flex-column">
+                <div class="row">
+                    <div class="col">
+                        <h1>Hello {username}</h1>
+                    </div>
+                </div>
+                <div class="row flex-grow-1">
+                    <div class="col d-flex flex-column">{children}</div>
+                </div>
+            </div>
+        </Page>
+    );
+}
+
+export function ExpenseLogListPage({
+    username,
+    logs,
+}: {
+    username: string;
+    logs: ExpenseLog[];
+}) {
+    return (
+        <AppPage username={username}>
             <div class="row flex-grow-1">
                 <div class="col">
                     <div class="d-flex justify-content-between">
-                        <h3>Expenses</h3>
+                        <nav aria-label="breadcrumb">
+                            <h3>
+                                <ol class="breadcrumb">
+                                    <li
+                                        class="breadcrumb-item active"
+                                        aria-current="page"
+                                    >
+                                        Expenses
+                                    </li>
+                                </ol>
+                            </h3>
+                        </nav>
                         <div
                             class="btn-group d-none d-sm-block text-end"
                             role="group"
@@ -215,56 +254,82 @@ export function ExpenseLogList({ logs }: { logs: ExpenseLog[] }) {
                     </form>
                 </li>
             </div>
-        </div>
-    );
-}
-
-function AppPage({
-    username,
-    children,
-}: PropsWithChildren<{ username: string }>) {
-    return (
-        <Page>
-            <div class="container min-vh-100 d-flex flex-column">
-                <div class="row">
-                    <div class="col">
-                        <h1>Hello {username}</h1>
-                    </div>
-                </div>
-                <div class="row flex-grow-1">{children}</div>
-            </div>
-        </Page>
-    );
-}
-
-export function ExpenseLogListPage({
-    username,
-    logs,
-}: {
-    username: string;
-    logs: ExpenseLog[];
-}) {
-    return (
-        <AppPage username={username}>
-            <ExpenseLogList logs={logs} />
         </AppPage>
     );
 }
 
 export function ExpensesPage({
+    username,
     log,
     expenses,
 }: {
+    username: string;
     log: ExpenseLog;
     expenses: Expense[];
 }) {
     return (
-        <AppPage username={log.name}>
-            <ul class="list-group">
-                {expenses.map((expense) => (
-                    <li class="list-group-item">{expense.description}</li>
-                ))}
-            </ul>
+        <AppPage username={username}>
+            <div class="col d-flex flex-column">
+                <div class="row flex-grow-1">
+                    <div class="col">
+                        <div class="d-flex justify-content-between">
+                            <h3>
+                                <ol class="breadcrumb">
+                                    <li class="breadcrumb-item">
+                                        <a href="/app">Expenses</a>
+                                    </li>
+                                    <li
+                                        class="breadcrumb-item active"
+                                        aria-current="page"
+                                    >
+                                        {log.name}
+                                    </li>
+                                </ol>
+                            </h3>
+                            <div
+                                class="btn-group d-none d-sm-block text-end"
+                                role="group"
+                            >
+                                <button
+                                    type="button"
+                                    class="btn btn-secondary mb-2"
+                                >
+                                    + Add
+                                </button>
+                            </div>
+                        </div>
+                        <ul id="expense-log-list" class="list-group">
+                            {expenses.map((expense) => (
+                                <li class="list-group-item">
+                                    {expense.description}
+                                    <br />${expense.amount}
+                                    <br />
+                                    {new Date(
+                                        expense.date
+                                    ).toLocaleDateString()}
+                                </li>
+                            ))}
+                        </ul>
+                    </div>
+                </div>
+                <div class="row d-sm-none">
+                    <div class="col">
+                        <div class="row">
+                            <div class="btn-group" role="group">
+                                <button type="button" class="btn btn-secondary">
+                                    Left
+                                </button>
+                                <button type="button" class="btn btn-secondary">
+                                    Middle
+                                </button>
+                                <button type="button" class="btn btn-secondary">
+                                    Right
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
         </AppPage>
     );
 }

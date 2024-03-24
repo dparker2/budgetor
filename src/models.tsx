@@ -8,14 +8,17 @@ export class User {
     static sessions: Record<string, User> = {};
 
     id: number;
+    username: string;
     email: string;
     db: Database;
 
     constructor(id: number, email: string) {
         this.email = email;
+        this.username = email.split("@")[0];
         this.id = id;
         this.db = new Database(`db/users/${this.id}.sqlite3`, {
             create: false,
+            readwrite: true,
         });
     }
 
@@ -60,7 +63,7 @@ export class User {
     getLog(id: number): ExpenseLog | null {
         const record = this.db
             .query<{ name: string }, number>(
-                "SELECT name FROM expenselogs WHERE AND id = ?"
+                "SELECT name FROM expenselogs WHERE id = ?"
             )
             .get(id);
         if (!record) {

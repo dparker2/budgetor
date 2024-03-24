@@ -88,7 +88,7 @@ const elysia = new Elysia()
                 })
                 .get("/", ({ user }) => {
                     return ExpenseLogListPage({
-                        username: user.email.split("@")[0],
+                        username: user.username,
                         logs: user.getLogs(),
                     });
                 })
@@ -110,7 +110,11 @@ const elysia = new Elysia()
                     if (log === null) {
                         return error(404);
                     }
-                    return ExpensesPage({ log, expenses: log.getExpenses() });
+                    return ExpensesPage({
+                        username: user.username,
+                        log,
+                        expenses: log.getExpenses(),
+                    });
                 })
     )
     .listen(3000);
