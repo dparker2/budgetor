@@ -34,11 +34,9 @@ const elysia = new Elysia()
             }
 
             if ("login" in body) {
-                let sessionId;
-                if (
-                    (sessionId = User.authenticate(body.email, body.password))
-                ) {
-                    cookie.session.value = sessionId;
+                const userId = User.authenticate(body.email, body.password);
+                if (userId > 0) {
+                    cookie.session.value = User.newSession(userId);
                     set.status = 303;
                     set.headers["HX-Location"] = "/app";
                     return;
@@ -65,13 +63,21 @@ const elysia = new Elysia()
             }),
         }
     )
+    .get("/logout", ({ cookie, set }) => {
+        if (cookie.session.value) {
+            User.removeSession(cookie.session.value);
+            cookie.session.remove();
+        }
+        set.status = 303;
+        set.headers["Location"] = "/";
+    })
     .group(
         "/app",
         {
             beforeHandle({ set, cookie }) {
                 if (
                     !cookie.session?.value ||
-                    !User.sessions[cookie.session.value]
+                    !User.validateSession(cookie.session.value)
                 ) {
                     set.status = 303;
                     set.headers["Location"] = "/";
@@ -83,7 +89,7 @@ const elysia = new Elysia()
             app
                 .resolve(({ cookie }) => {
                     return {
-                        user: User.sessions[cookie.session.value],
+                        user: User.fromSession(cookie.session.value)!,
                     };
                 })
                 .get("/", ({ user }) => {

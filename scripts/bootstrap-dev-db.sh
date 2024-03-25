@@ -10,10 +10,10 @@ sqlite3 db/auth.sqlite3 "
 
 sqlite3 db/users/1.sqlite3 < db/bootstrap-user.sql
 sqlite3 db/users/1.sqlite3 "
-    INSERT INTO categories (name) VALUES
-        ('Household'),
-        ('Groceries'),
-        ('Gas');
+    INSERT INTO categories (name, color) VALUES
+        ('Household', '#E74C3C'),
+        ('Groceries', '#16A085'),
+        ('Gas', '#884EA0');
 
     INSERT INTO expenselogs (name) VALUES
         ('Log 1 (1/1/2024-1/14-2024)'),

@@ -188,9 +188,9 @@ export function ExpenseLogListPage({
         <AppPage username={username}>
             <div class="row flex-grow-1">
                 <div class="col">
-                    <div class="d-flex justify-content-between">
+                    <div class="d-flex align-items-baseline justify-content-between">
                         <nav aria-label="breadcrumb">
-                            <h3>
+                            <h5>
                                 <ol class="breadcrumb">
                                     <li
                                         class="breadcrumb-item active"
@@ -199,7 +199,7 @@ export function ExpenseLogListPage({
                                         Expenses
                                     </li>
                                 </ol>
-                            </h3>
+                            </h5>
                         </nav>
                         <div
                             class="btn-group d-none d-sm-block text-end"
@@ -269,66 +269,100 @@ export function ExpensesPage({
 }) {
     return (
         <AppPage username={username}>
-            <div class="col d-flex flex-column">
-                <div class="row flex-grow-1">
-                    <div class="col">
-                        <div class="d-flex justify-content-between">
-                            <h3>
-                                <ol class="breadcrumb">
-                                    <li class="breadcrumb-item">
-                                        <a href="/app">Expenses</a>
-                                    </li>
-                                    <li
-                                        class="breadcrumb-item active"
-                                        aria-current="page"
-                                    >
-                                        {log.name}
-                                    </li>
-                                </ol>
-                            </h3>
-                            <div
-                                class="btn-group d-none d-sm-block text-end"
-                                role="group"
-                            >
-                                <button
-                                    type="button"
-                                    class="btn btn-secondary mb-2"
-                                >
-                                    + Add
-                                </button>
-                            </div>
-                        </div>
-                        <ul id="expense-log-list" class="list-group">
-                            {expenses.map((expense) => (
-                                <li class="list-group-item">
-                                    {expense.description}
-                                    <br />${expense.amount}
-                                    <br />
-                                    {new Date(
-                                        expense.date
-                                    ).toLocaleDateString()}
+            <div class="row flex-grow-1">
+                <div class="col">
+                    <div class="d-flex align-items-baseline justify-content-between">
+                        <h5>
+                            <ol class="breadcrumb">
+                                <li class="breadcrumb-item">
+                                    <a href="/app">Expenses</a>
                                 </li>
-                            ))}
-                        </ul>
+                                <li
+                                    class="breadcrumb-item active"
+                                    aria-current="page"
+                                >
+                                    {log.name}
+                                </li>
+                            </ol>
+                        </h5>
+                        <div
+                            class="btn-group d-none d-sm-block text-end"
+                            role="group"
+                        >
+                            <button
+                                type="button"
+                                class="btn btn-secondary mb-2"
+                            >
+                                + Add
+                            </button>
+                        </div>
                     </div>
+                    <ul id="expense-log-list" class="list-group">
+                        {expenses.map((expense) => (
+                            <li
+                                class="list-group-item position-relative"
+                                style={{
+                                    background: `linear-gradient(90deg, ${expense.color} 10px, transparent 0%)`,
+                                }}
+                            >
+                                <span class="d-flex justify-content-between">
+                                    <span>
+                                        <small style={{ color: expense.color }}>
+                                            {expense.category}
+                                        </small>
+                                        <br />
+                                        {expense.description}
+                                    </span>
+                                    <span style={{ flexBasis: "70px" }}>
+                                        <small>
+                                            {new Date(
+                                                expense.date
+                                            ).toLocaleDateString()}
+                                        </small>
+                                        <br />${expense.amount}
+                                    </span>
+                                </span>
+                            </li>
+                        ))}
+                    </ul>
                 </div>
-                <div class="row d-sm-none">
-                    <div class="col">
-                        <div class="row">
-                            <div class="btn-group" role="group">
-                                <button type="button" class="btn btn-secondary">
-                                    Left
-                                </button>
-                                <button type="button" class="btn btn-secondary">
-                                    Middle
-                                </button>
-                                <button type="button" class="btn btn-secondary">
-                                    Right
-                                </button>
-                            </div>
+            </div>
+            <div class="row d-sm-none">
+                <div class="col">
+                    <div class="row">
+                        <div class="btn-group" role="group">
+                            <button type="button" class="btn btn-secondary">
+                                Left
+                            </button>
+                            <button type="button" class="btn btn-secondary">
+                                Middle
+                            </button>
+                            <button type="button" class="btn btn-secondary">
+                                Right
+                            </button>
                         </div>
                     </div>
                 </div>
+            </div>
+            <div id="new-log-form" class="d-none">
+                <li class="list-group-item">
+                    <form
+                        hx-post={`/app/logs/${log.id}/expenses`}
+                        hx-target="closest li"
+                        hx-swap="outerHTML"
+                        class="d-flex"
+                    >
+                        <input
+                            type="text"
+                            class="form-control"
+                            name="name"
+                            placeholder="Name"
+                        />
+                        <button type="submit" class="btn btn-primary">
+                            Save
+                        </button>
+                    </form>
+                </li>
             </div>
         </AppPage>
     );

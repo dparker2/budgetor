@@ -4,7 +4,8 @@ BEGIN TRANSACTION;
 
 CREATE TABLE categories (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
-    name TEXT
+    name TEXT,
+    color TEXT
 );
 
 CREATE TABLE expenselogs (

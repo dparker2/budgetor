@@ -5,8 +5,6 @@ const authDb = new Database("db/auth.sqlite3");
 const userDbSchema = await Bun.file("db/bootstrap-user.sql").text();
 
 export class User {
-    static sessions: Record<string, User> = {};
-
     id: number;
     username: string;
     email: string;
@@ -41,16 +39,47 @@ export class User {
             )
             .get(email);
         if (!record) {
-            return false;
+            return 0;
         }
         const [hash, salt] = record.password.split(":");
         const hashVerify = scryptSync(password, salt, 64);
-        if (!timingSafeEqual(Buffer.from(hash, "hex"), hashVerify)) {
-            return false;
-        }
 
+        if (!timingSafeEqual(Buffer.from(hash, "hex"), hashVerify)) {
+            return 0;
+        }
+        return record.id;
+    }
+
+    static validateSession(sessionId: string) {
+        return !!authDb
+            .query("SELECT 1 FROM sessions WHERE hash = ?")
+            .get(sessionId);
+    }
+
+    static fromSession(sessionId: string) {
+        const record = authDb
+            .query<{ id: number; email: string }, string>(
+                `SELECT users.id, users.email FROM sessions
+                    JOIN users ON users.id = sessions.user_id
+                WHERE sessions.hash = ?`
+            )
+            .get(sessionId);
+        if (!record) {
+            return null;
+        }
+        return new User(record.id, record.email);
+    }
+
+    static removeSession(sessionId: string) {
+        authDb.run("DELETE FROM sessions WHERE hash = ?", [sessionId]);
+    }
+
+    static newSession(userId: number) {
         const sessionId = randomBytes(16).toString("hex");
-        this.sessions[sessionId] = new User(record.id, email);
+        authDb.run<[string, number]>(
+            "INSERT INTO sessions (hash, user_id) VALUES (?, ?)",
+            [sessionId, userId]
+        );
         return sessionId;
     }
 
@@ -96,7 +125,7 @@ export class ExpenseLog {
         return this.owner.db
             .query<Expense, number>(
                 `
-            SELECT expenses.id, expenses.date, expenses.amount, expenses.description, categories.name FROM expenses
+            SELECT expenses.id, expenses.date, expenses.amount, expenses.description, categories.name AS category, categories.color FROM expenses
                 JOIN expenselogs ON expenselogs.id=expenses.log
                 JOIN categories ON expenses.category=categories.id
             WHERE expenselogs.id=?
@@ -112,4 +141,5 @@ export interface Expense {
     amount: Date;
     description: string;
     category: string;
+    color: string;
 }
