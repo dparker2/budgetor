@@ -108,6 +108,12 @@ export class User {
             )
             .get(name)!;
     }
+
+    getCategories(): Category[] {
+        return this.db
+            .query<Category, []>("SELECT * FROM categories ORDER BY name")
+            .all();
+    }
 }
 
 export class ExpenseLog {
@@ -133,6 +139,12 @@ export class ExpenseLog {
             )
             .all(this.id);
     }
+}
+
+export interface Category {
+    id: number;
+    name: string;
+    color: string;
 }
 
 export interface Expense {

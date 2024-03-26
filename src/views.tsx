@@ -1,5 +1,5 @@
 import { type PropsWithChildren } from "@kitajs/html";
-import { type Expense, type ExpenseLog } from "./models";
+import { Category, type Expense, type ExpenseLog } from "./models";
 
 function Page({ children }: PropsWithChildren) {
     return (
@@ -44,12 +44,6 @@ function Page({ children }: PropsWithChildren) {
                             evt.detail.isError = false;
                         }
                     })
-                    function addLog() {
-                        var formItem = document.getElementById("new-log-form").firstChild.cloneNode(true);
-                        document.getElementById("expense-log-list").prepend(formItem);
-                        htmx.process(formItem);
-                        formItem.querySelector("input").focus();
-                    }
                 `}</script>
             </body>
         </html>
@@ -206,12 +200,45 @@ export function ExpenseLogListPage({
                             role="group"
                         >
                             <button
+                                id="add-expense-log"
                                 type="button"
                                 class="btn btn-secondary mb-2"
-                                onclick="addLog()"
                             >
                                 + Add
                             </button>
+                            <div id="new-log-form" class="d-none">
+                                <li class="list-group-item">
+                                    <form
+                                        hx-post="/app/logs"
+                                        hx-target="closest li"
+                                        hx-swap="outerHTML"
+                                        class="d-flex"
+                                    >
+                                        <input
+                                            type="text"
+                                            class="form-control"
+                                            name="name"
+                                            placeholder="Name"
+                                        />
+                                        <button
+                                            type="submit"
+                                            class="btn btn-primary"
+                                        >
+                                            Save
+                                        </button>
+                                    </form>
+                                </li>
+                            </div>
+                            <script type="text/javascript">{`
+                                (function() {
+                                    document.getElementById("add-expense-log").addEventListener("click", function() {
+                                        var formItem = document.getElementById("new-log-form").firstChild.cloneNode(true);
+                                        document.getElementById("expense-log-list").prepend(formItem);
+                                        htmx.process(formItem);
+                                        formItem.querySelector("input").focus();
+                                    })
+                                })();
+                            `}</script>
                         </div>
                     </div>
                     <ul id="expense-log-list" class="list-group">
@@ -234,26 +261,6 @@ export function ExpenseLogListPage({
                     </button>
                 </div>
             </div>
-            <div id="new-log-form" class="d-none">
-                <li class="list-group-item">
-                    <form
-                        hx-post="/app/logs"
-                        hx-target="closest li"
-                        hx-swap="outerHTML"
-                        class="d-flex"
-                    >
-                        <input
-                            type="text"
-                            class="form-control"
-                            name="name"
-                            placeholder="Name"
-                        />
-                        <button type="submit" class="btn btn-primary">
-                            Save
-                        </button>
-                    </form>
-                </li>
-            </div>
         </AppPage>
     );
 }
@@ -262,10 +269,12 @@ export function ExpensesPage({
     username,
     log,
     expenses,
+    categories,
 }: {
     username: string;
     log: ExpenseLog;
     expenses: Expense[];
+    categories: Category[];
 }) {
     return (
         <AppPage username={username}>
@@ -285,19 +294,89 @@ export function ExpensesPage({
                                 </li>
                             </ol>
                         </h5>
-                        <div
-                            class="btn-group d-none d-sm-block text-end"
-                            role="group"
-                        >
+                        <div class="d-none d-sm-block text-end" role="group">
                             <button
+                                id="add-expense"
                                 type="button"
                                 class="btn btn-secondary mb-2"
                             >
                                 + Add
                             </button>
+                            <div id="new-expense-form" class="d-none">
+                                <li class="list-group-item">
+                                    <form
+                                        hx-post={`/app/logs/${log.id}/expenses`}
+                                        hx-target="closest li"
+                                        hx-swap="outerHTML"
+                                        class="row g-3"
+                                    >
+                                        <div class="col-8">
+                                            <input
+                                                type="text"
+                                                class="form-control"
+                                                name="description"
+                                                placeholder="Description"
+                                            />
+                                        </div>
+                                        <div class="col-4">
+                                            <input
+                                                type="number"
+                                                class="form-control"
+                                                name="amount"
+                                                step="0.01"
+                                                min="-9999.99"
+                                                max="9999.99"
+                                                placeholder="0.00"
+                                            />
+                                        </div>
+                                        <div class="col-4">
+                                            <select
+                                                class="form-select"
+                                                name="category"
+                                            >
+                                                <option value="0" selected>
+                                                    Category...
+                                                </option>
+                                                {categories.map((category) => (
+                                                    <option
+                                                        value={category.id.toString()}
+                                                    >
+                                                        {category.name}
+                                                    </option>
+                                                ))}
+                                            </select>
+                                        </div>
+                                        <div class="col-4">
+                                            <input
+                                                type="date"
+                                                class="form-control"
+                                                name="date"
+                                            />
+                                        </div>
+                                        <div class="col-4">
+                                            <button
+                                                type="submit"
+                                                class="btn btn-primary"
+                                            >
+                                                Save
+                                            </button>
+                                        </div>
+                                    </form>
+                                </li>
+                            </div>
+                            <script type="text/javascript">{`
+                                (function() {
+                                    document.getElementById("add-expense").addEventListener("click", function() {
+                                        var formItem = document.getElementById("new-expense-form").firstChild.cloneNode(true);
+                                        document.getElementById("expense-list").prepend(formItem);
+                                        htmx.process(formItem);
+                                        formItem.querySelector("input").focus();
+                                    });
+                                })();
+                            `}</script>
                         </div>
                     </div>
-                    <ul id="expense-log-list" class="list-group">
+                    <ul id="expense-list" class="list-group">
                         {expenses.map((expense) => (
                             <li
                                 class="list-group-item position-relative"

@@ -120,6 +120,7 @@ const elysia = new Elysia()
                         username: user.username,
                         log,
                         expenses: log.getExpenses(),
+                        categories: user.getCategories(),
                     });
                 })
     )
