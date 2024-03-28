@@ -139,6 +139,19 @@ export class ExpenseLog {
             )
             .all(this.id);
     }
+
+    addExpense(
+        date: string,
+        amount: string,
+        description: string,
+        category: number
+    ) {
+        return this.owner.db
+            .query<{ id: number }, [number, string, string, string, number]>(
+                "INSERT INTO expenses (log, date, amount, description, category) VALUES (?, ?, ?, ?, ?) RETURNING id"
+            )
+            .get(this.id, date, amount, description, category);
+    }
 }
 
 export interface Category {
@@ -149,8 +162,8 @@ export interface Category {
 
 export interface Expense {
     id: number;
-    date: number;
-    amount: Date;
+    date: string;
+    amount: string;
     description: string;
     category: string;
     color: string;

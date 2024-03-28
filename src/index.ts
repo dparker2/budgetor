@@ -1,5 +1,6 @@
 import { Elysia, error, t } from "elysia";
 import { html } from "@elysiajs/html";
+import { staticPlugin } from "@elysiajs/static";
 
 import {
     Index,
@@ -13,6 +14,7 @@ import { User } from "./models";
 
 const elysia = new Elysia()
     .use(html())
+    .use(staticPlugin())
     .onError(({ error }) => {
         console.error("[ERROR]");
         console.error(error);
@@ -111,7 +113,7 @@ const elysia = new Elysia()
                         }),
                     }
                 )
-                .get("/logs/:id", ({ user, params }) => {
+                .get("/logs/:id", async ({ user, params }) => {
                     const log = user.getLog(Number(params.id));
                     if (log === null) {
                         return error(404);
@@ -123,6 +125,34 @@ const elysia = new Elysia()
                         categories: user.getCategories(),
                     });
                 })
+                .post(
+                    "/logs/:id/expenses",
+                    ({ user, params, body }) => {
+                        console.log(body);
+                        console.log(
+                            user.getLog(Number(params.id))?.addExpense(
+                                body.date as unknown as string, // Elysia type bug?
+                                body.amount,
+                                body.description,
+                                body.category
+                            )
+                        );
+                        return error(500);
+                    },
+                    {
+                        body: t.Object({
+                            amount: t.String(),
+                            description: t.String(),
+                            category: t.Number(),
+                            date: t.Date(),
+                        }),
+                        transform({ body }) {
+                            if (!Number.isNaN(+body.category)) {
+                                body.category = +body.category;
+                            }
+                        },
+                    }
+                )
     )
     .listen(3000);
 

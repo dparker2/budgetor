@@ -17,7 +17,7 @@ CREATE TABLE expenses (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     log INTEGER,
     date DATE,
-    amount INTEGER,
+    amount TEXT,
     description TEXT,
     category INTEGER,
     FOREIGN KEY(log) REFERENCES expenselogs(id),

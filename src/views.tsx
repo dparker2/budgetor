@@ -1,6 +1,18 @@
 import { type PropsWithChildren } from "@kitajs/html";
 import { Category, type Expense, type ExpenseLog } from "./models";
 
+const versionedPublic = async function (path: string) {
+    const cache: Record<string, string> = {};
+    return await (async function () {
+        if (!(path in cache)) {
+            const hasher = new Bun.MD5();
+            hasher.update(await Bun.file(`public/${path}`).text());
+            cache[path] = hasher.digest("hex");
+        }
+        return `/public/${path}?v=${cache[path]}`;
+    })();
+};
+
 function Page({ children }: PropsWithChildren) {
     return (
         <html lang="en" data-bs-theme="dark">
@@ -39,7 +51,7 @@ function Page({ children }: PropsWithChildren) {
                 </div>
                 <script>{`
                     document.addEventListener('htmx:beforeSwap', function (evt) {
-                        if (evt.detail.xhr.status === 401 || evt.detail.xhr.status === 422) {
+                        if (evt.detail.xhr.status === 401) {
                             evt.detail.shouldSwap = true;
                             evt.detail.isError = false;
                         }
@@ -265,7 +277,7 @@ export function ExpenseLogListPage({
     );
 }
 
-export function ExpensesPage({
+export async function ExpensesPage({
     username,
     log,
     expenses,
@@ -364,16 +376,6 @@ export function ExpensesPage({
                                     </form>
                                 </li>
                             </div>
-                            <script type="text/javascript">{`
-                                (function() {
-                                    document.getElementById("add-expense").addEventListener("click", function() {
-                                        var formItem = document.getElementById("new-expense-form").firstChild.cloneNode(true);
-                                        document.getElementById("expense-list").prepend(formItem);
-                                        htmx.process(formItem);
-                                        formItem.querySelector("input").focus();
-                                    });
-                                })();
-                            `}</script>
                         </div>
                     </div>
                     <ul id="expense-list" class="list-group">
@@ -443,6 +445,7 @@ export function ExpensesPage({
                     </form>
                 </li>
             </div>
+            <script src={await versionedPublic("expenses.js")}></script>
         </AppPage>
     );
 }
